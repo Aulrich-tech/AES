@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AES Reviewer — Overview</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="sidebar">
+    <span class="sidebar__mark">AES // REVIEWER</span>
+    <span class="sidebar__sub">Advanced Encryption Standard</span>
+    <nav aria-label="Modules">
+      <ul>
+        <li><a href="index.html" class="active"><span class="idx">00</span> Overview</a></li>
+        <li><a href="key-expansion.html"><span class="idx">01</span> Key Expansion</a></li>
+        <li><a href="encryption-process.html"><span class="idx">02</span> Encryption Process</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar__foot">
+      Notes based on Prof. E. F. Lagda's AES lecture slides.<br><br>
+      Hover any grid — every byte in this reviewer is real AES arithmetic, not filler.
+    </div>
+  </aside>
+
+  <main>
+    <div class="prose">
+      <p class="eyebrow-plain">00 — Overview</p>
+    </div>
+
+    <div class="hero prose" style="max-width: 100%;">
+      <div>
+        <h1>Rijndael, worked byte by byte.</h1>
+        <p class="lede">Two modules, one cipher. This reviewer walks through how a 128-bit AES key turns into eleven round keys, and how a 16-byte block of plaintext turns into ciphertext — using the same worked numbers from lecture, shown one operation at a time.</p>
+        <div class="module-cards">
+          <a class="mcard" href="key-expansion.html">
+            <div class="mcard__num">01</div>
+            <div class="mcard__title">Key Expansion</div>
+            <p class="mcard__desc">RotWord, SubWord, and RCON — how one 16-byte key becomes eleven round keys.</p>
+          </a>
+          <a class="mcard" href="encryption-process.html">
+            <div class="mcard__num">02</div>
+            <div class="mcard__title">Encryption Process</div>
+            <p class="mcard__desc">SubBytes, ShiftRows, MixColumns, AddRoundKey — one full round, worked end to end.</p>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-grid">
+        <div class="hero-grid__label">state matrix — 16 bytes, column by column</div>
+        <div class="state16" aria-hidden="true">
+          <div class="cell">2b</div><div class="cell">28</div><div class="cell">ab</div><div class="cell">09</div>
+          <div class="cell">7e</div><div class="cell">ae</div><div class="cell">f7</div><div class="cell">cf</div>
+          <div class="cell">15</div><div class="cell">d2</div><div class="cell">15</div><div class="cell">4f</div>
+          <div class="cell">16</div><div class="cell">a6</div><div class="cell">88</div><div class="cell">3c</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <div class="fact-row">
+        <div class="fact"><div class="fact__num">128 / 192 / 256</div><div class="fact__label">supported key sizes (bits)</div></div>
+        <div class="fact"><div class="fact__num">10 / 12 / 14</div><div class="fact__label">rounds for each key size</div></div>
+        <div class="fact"><div class="fact__num">16</div><div class="fact__label">bytes per block, always</div></div>
+        <div class="fact"><div class="fact__num">4</div><div class="fact__label">operations per round</div></div>
+      </div>
+
+      <h2>What AES is</h2>
+      <p>AES — the Advanced Encryption Standard — is the symmetric block cipher NIST selected to replace DES and 3DES. The algorithm underneath it is called <strong>Rijndael</strong>, named for its two Belgian designers, Vincent Rijmen and Joan Daemen. It's symmetric, meaning the same key encrypts and decrypts, and it's a block cipher, meaning it always works on fixed 16-byte (128-bit) chunks of data regardless of the key size chosen.</p>
+      <p>Rijndael supports three key sizes — 128, 192, and 256 bits — and the key size decides how many rounds the cipher runs: <strong>10 rounds</strong> for a 128-bit key, <strong>12</strong> for 192-bit, <strong>14</strong> for 256-bit. Every module in this reviewer uses the 128-bit / 10-round case, since that's what the worked examples are built on.</p>
+
+      <h2>Where it's actually used</h2>
+      <p>AES isn't a classroom-only cipher — it's the default symmetric cipher behind most of the encrypted systems already running around you:</p>
+      <ul class="plain">
+        <li><strong>Data and disk encryption</strong> — full-disk and file-level encryption on laptops and phones</li>
+        <li><strong>TLS and IPSec</strong> — the encryption layer behind HTTPS and VPN tunnels</li>
+        <li><strong>WPA2</strong> — the encryption used to secure home and office Wi-Fi</li>
+        <li><strong>Database encryption</strong> — protecting sensitive columns at rest</li>
+        <li><strong>Messaging and cloud apps</strong> — securing data in mobile apps and cloud services</li>
+        <li><strong>DRM and VPNs</strong> — protecting licensed content and private tunnels</li>
+      </ul>
+
+      <h2>How the two modules connect</h2>
+      <p>Key Expansion and the Encryption Process aren't separate ciphers — they're two halves of the same pipeline. Key Expansion happens first and only once: it takes the original 16-byte key and stretches it into eleven 16-byte round keys (one for the initial AddRoundKey, and one per round). The Encryption Process then runs ten rounds over the plaintext, and every single one of those rounds consumes exactly one of the round keys that Key Expansion produced.</p>
+      <div class="stage-row" style="margin-top: 22px;">
+        <div><strong>Original Key</strong><br><span class="dim mono" style="font-size:13px;">16 bytes</span></div>
+        <div class="op">→</div>
+        <div><strong>Key Expansion</strong><br><span class="dim mono" style="font-size:13px;">11 round keys</span></div>
+        <div class="op">→</div>
+        <div><strong>Encryption Process</strong><br><span class="dim mono" style="font-size:13px;">10 rounds</span></div>
+        <div class="op">→</div>
+        <div><strong>Ciphertext</strong><br><span class="dim mono" style="font-size:13px;">16 bytes</span></div>
+      </div>
+
+      <div class="note"><strong>Start here:</strong> read Key Expansion first — the round keys it produces are exactly what the Encryption Process XORs into the state in the AddRoundKey step. The worked numbers carry over between the two modules.</div>
+
+      <div class="page-nav">
+        <span></span>
+        <a class="next" href="key-expansion.html"><span class="lbl">Next — 01</span>Key Expansion →</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

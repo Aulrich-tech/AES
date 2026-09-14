@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03 Activity — AES Reviewer</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <span class="sidebar__mark">AES // REVIEWER</span>
+    <span class="sidebar__sub">Advanced Encryption Standard</span>
+    <nav aria-label="Modules">
+      <ul>
+        <li><a href="index.html"><span class="idx">00</span> Overview</a></li>
+        <li><a href="key-expansion.html"><span class="idx">01</span> Key Expansion</a></li>
+        <li><a href="encryption-process.html"><span class="idx">02</span> Encryption Process</a></li>
+        <li><a href="activity.html" class="active"><span class="idx">03</span> Activity</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar__foot">
+      One key, one block, both modules — work it end to end before checking the reveal.
+    </div>
+  </aside>
+
+  <main>
+    <div class="prose">
+
+      <p class="eyebrow-plain">03 — Activity</p>
+      <h1>One key. One block. Every step.</h1>
+      <p class="lede">This is a single item — no separate practice per module. You're given one 16-byte key and one 16-byte plaintext block. Run the key through <strong>Key Expansion</strong> to get Round 1's key, then run the plaintext through <strong>Round 0</strong> and <strong>Round 1</strong> of the Encryption Process using the round key you just derived. Same four-step and four-operation loops from both modules — just chained into one worked problem.</p>
+
+      <h2>Given</h2>
+      <div class="grid-block">
+        <div class="grid-block__cap">plaintext</div>
+        <div class="bytestrip">
+          <div class="c">00</div><div class="c">11</div><div class="c">22</div><div class="c">33</div>
+          <div class="c">44</div><div class="c">55</div><div class="c">66</div><div class="c">77</div>
+          <div class="c">88</div><div class="c">99</div><div class="c">aa</div><div class="c">bb</div>
+          <div class="c">cc</div><div class="c">dd</div><div class="c">ee</div><div class="c">ff</div>
+        </div>
+      </div>
+      <div class="grid-block">
+        <div class="grid-block__cap">key — w0 w1 w2 w3</div>
+        <div class="bytestrip">
+          <div class="c g">00</div><div class="c g">01</div><div class="c g">02</div><div class="c g">03</div>
+          <div class="c g">04</div><div class="c g">05</div><div class="c g">06</div><div class="c g">07</div>
+          <div class="c g">08</div><div class="c g">09</div><div class="c g">0a</div><div class="c g">0b</div>
+          <div class="c g">0c</div><div class="c g">0d</div><div class="c g">0e</div><div class="c g">0f</div>
+        </div>
+      </div>
+      <p class="dim" style="max-width:66ch;">Split into words: <code class="mono">w0 = 00 01 02 03</code>, <code class="mono">w1 = 04 05 06 07</code>, <code class="mono">w2 = 08 09 0a 0b</code>, <code class="mono">w3 = 0c 0d 0e 0f</code>.</p>
+
+      <hr class="rule">
+
+      <h2>Part 1 — get Round 1's key</h2>
+      <p>Same routine as Key Expansion module 01: only <code class="mono">w4</code> gets the full treatment, <code class="mono">w5–w7</code> are plain XORs.</p>
+      <div class="formula-list">
+<span class="b">1.</span> RotWord(w3)<br>
+<span class="b">2.</span> SubWord(result) — look each byte up in the S-Box<br>
+<span class="b">3.</span> w4 = SubWord result ⊕ w0 ⊕ RCON[1] &nbsp;<span class="dim">(RCON[1] = 01 00 00 00)</span><br>
+<span class="b">4.</span> w5 = w4 ⊕ w1 &nbsp;·&nbsp; w6 = w5 ⊕ w2 &nbsp;·&nbsp; w7 = w6 ⊕ w3
+      </div>
+
+      <h2>Part 2 — run the block through Round 0 and Round 1</h2>
+      <p>Same four operations as Encryption Process module 02. Round 0 is just the initial whitening against the raw key; Round 1 is the full SubBytes → ShiftRows → MixColumns → AddRoundKey sequence, closed out with the Round 1 key from Part 1.</p>
+      <div class="formula-list">
+<span class="b">1.</span> Round 0: state = plaintext ⊕ key<br>
+<span class="b">2.</span> Round 1 — SubBytes: look up every byte in the S-Box<br>
+<span class="b">3.</span> Round 1 — ShiftRows: row 0 stays, row 1 shifts by 1, row 2 by 2, row 3 by 3<br>
+<span class="b">4.</span> Round 1 — MixColumns: multiply each column against the fixed GF(2⁸) matrix<br>
+<span class="b">5.</span> Round 1 — AddRoundKey: XOR against <strong>w4 w5 w6 w7</strong> (the key you derived in Part 1)
+      </div>
+
+      <div class="note"><strong>Why this matters:</strong> in modules 01 and 02 the two worked examples used different keys, so there was nothing tying them together. Here there's only one key and one block — the round key you compute in Part 1 is the exact round key AddRoundKey needs in Part 2. Get Part 1 wrong and Part 2 won't match the reveal either.</div>
+
+      <hr class="rule">
+
+      <details class="practice">
+        <summary>Show full worked solution</summary>
+        <div class="practice-body">
+
+          <h3>Part 1 — Round 1 key</h3>
+          <div class="steps">
+            <div class="step">
+              <h4>RotWord(w3)</h4>
+              <div class="stage-row">
+                <figure><div class="grid4 grid4--word"><div class="c">0c</div><div class="c">0d</div><div class="c">0e</div><div class="c">0f</div></div><figcaption>w3</figcaption></figure>
+                <div class="op">→</div>
+                <figure><div class="grid4 grid4--word"><div class="c g">0d</div><div class="c g">0e</div><div class="c g">0f</div><div class="c g">0c</div></div><figcaption>RotWord(w3)</figcaption></figure>
+              </div>
+            </div>
+            <div class="step">
+              <h4>SubWord</h4>
+              <div class="workblock">
+<span class="l">0d</span> → row 0, col d → <span class="res">d7</span><br>
+<span class="l">0e</span> → row 0, col e → <span class="res">ab</span><br>
+<span class="l">0f</span> → row 0, col f → <span class="res">76</span><br>
+<span class="l">0c</span> → row 0, col c → <span class="res">fe</span>
+              </div>
+              <div class="stage-row">
+                <figure><div class="grid4 grid4--word"><div class="c g">d7</div><div class="c g">ab</div><div class="c g">76</div><div class="c g">fe</div></div><figcaption>SubWord result</figcaption></figure>
+              </div>
+            </div>
+            <div class="step">
+              <h4>XOR with w0 and RCON[1]</h4>
+              <div class="workblock">
+w0&nbsp;&nbsp;&nbsp;&nbsp;<span class="l">00 01 02 03</span><br>
+SubWord&nbsp;<span class="l">d7 ab 76 fe</span><br>
+RCON[1]&nbsp;<span class="l">01 00 00 00</span><br>
+——————————————<br>
+w4&nbsp;&nbsp;&nbsp;&nbsp;<span class="res">d6 aa 74 fd</span>
+              </div>
+            </div>
+            <div class="step">
+              <h4>XOR the rest forward</h4>
+              <div class="workblock">
+w5 = w4 ⊕ w1 = <span class="l">d6 aa 74 fd</span> ⊕ <span class="l">04 05 06 07</span> = <span class="res">d2 af 72 fa</span><br>
+w6 = w5 ⊕ w2 = <span class="l">d2 af 72 fa</span> ⊕ <span class="l">08 09 0a 0b</span> = <span class="res">da a6 78 f1</span><br>
+w7 = w6 ⊕ w3 = <span class="l">da a6 78 f1</span> ⊕ <span class="l">0c 0d 0e 0f</span> = <span class="res">d6 ab 76 fe</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-block">
+            <div class="grid-block__cap">Round 1 key — w4 w5 w6 w7</div>
+            <div class="grid4">
+              <div class="c g">d6</div><div class="c">d2</div><div class="c">da</div><div class="c">d6</div>
+              <div class="c g">aa</div><div class="c">af</div><div class="c">a6</div><div class="c">ab</div>
+              <div class="c g">74</div><div class="c">72</div><div class="c">78</div><div class="c">76</div>
+              <div class="c g">fd</div><div class="c">fa</div><div class="c">f1</div><div class="c">fe</div>
+            </div>
+          </div>
+
+          <h3>Part 2 — Round 0 and Round 1</h3>
+          <p>Plaintext and key loaded into the state matrix, then XORed for the initial whitening:</p>
+          <div class="stage-row">
+            <figure>
+              <div class="grid4">
+                <div class="c">00</div><div class="c">44</div><div class="c">88</div><div class="c">cc</div>
+                <div class="c">11</div><div class="c">55</div><div class="c">99</div><div class="c">dd</div>
+                <div class="c">22</div><div class="c">66</div><div class="c">aa</div><div class="c">ee</div>
+                <div class="c">33</div><div class="c">77</div><div class="c">bb</div><div class="c">ff</div>
+              </div>
+              <figcaption>plaintext state</figcaption>
+            </figure>
+            <span class="op">⊕</span>
+            <figure>
+              <div class="grid4">
+                <div class="c g">00</div><div class="c g">04</div><div class="c g">08</div><div class="c g">0c</div>
+                <div class="c g">01</div><div class="c g">05</div><div class="c g">09</div><div class="c g">0d</div>
+                <div class="c g">02</div><div class="c g">06</div><div class="c g">0a</div><div class="c g">0e</div>
+                <div class="c g">03</div><div class="c g">07</div><div class="c g">0b</div><div class="c g">0f</div>
+              </div>
+              <figcaption>key</figcaption>
+            </figure>
+            <span class="op">=</span>
+            <figure>
+              <div class="grid4">
+                <div class="c">00</div><div class="c">40</div><div class="c">80</div><div class="c">c0</div>
+                <div class="c">10</div><div class="c">50</div><div class="c">90</div><div class="c">d0</div>
+                <div class="c">20</div><div class="c">60</div><div class="c">a0</div><div class="c">e0</div>
+                <div class="c">30</div><div class="c">70</div><div class="c">b0</div><div class="c">f0</div>
+              </div>
+              <figcaption>state after Round 0</figcaption>
+            </figure>
+          </div>
+
+          <p>SubBytes, then ShiftRows:</p>
+          <div class="stage-row">
+            <figure>
+              <div class="grid4">
+                <div class="c">63</div><div class="c">09</div><div class="c">cd</div><div class="c">ba</div>
+                <div class="c">ca</div><div class="c">53</div><div class="c">60</div><div class="c">70</div>
+                <div class="c">b7</div><div class="c">d0</div><div class="c">e0</div><div class="c">e1</div>
+                <div class="c">04</div><div class="c">51</div><div class="c">e7</div><div class="c">8c</div>
+              </div>
+              <figcaption>after SubBytes</figcaption>
+            </figure>
+            <figure>
+              <div class="grid4">
+                <div class="c">63</div><div class="c">09</div><div class="c">cd</div><div class="c">ba</div>
+                <div class="c">53</div><div class="c">60</div><div class="c">70</div><div class="c">ca</div>
+                <div class="c">e0</div><div class="c">e1</div><div class="c">b7</div><div class="c">d0</div>
+                <div class="c">8c</div><div class="c">04</div><div class="c">51</div><div class="c">e7</div>
+              </div>
+              <figcaption>after ShiftRows</figcaption>
+            </figure>
+          </div>
+
+          <p>MixColumns, worked for column 0 (<code class="mono">63 53 e0 8c</code>):</p>
+          <div class="workblock">
+b1 = (63·2) ⊕ (53·3) ⊕ e0 ⊕ 8c = <span class="res">5f</span><br>
+b2 = 63 ⊕ (53·2) ⊕ (e0·3) ⊕ 8c = <span class="res">72</span><br>
+b3 = 63 ⊕ 53 ⊕ (e0·2) ⊕ (8c·3) = <span class="res">64</span><br>
+b4 = (63·3) ⊕ 53 ⊕ e0 ⊕ (8c·2) = <span class="res">15</span>
+          </div>
+          <p>Same three formulas across all four columns give the full post-MixColumns state:</p>
+          <div class="grid-block">
+            <div class="grid-block__cap">state after MixColumns</div>
+            <div class="grid4">
+              <div class="c">5f</div><div class="c">72</div><div class="c">64</div><div class="c">15</div>
+              <div class="c">57</div><div class="c">f5</div><div class="c">be</div><div class="c">b9</div>
+              <div class="c">64</div><div class="c">bc</div><div class="c">3b</div><div class="c">f9</div>
+              <div class="c">15</div><div class="c">92</div><div class="c">29</div><div class="c">1a</div>
+            </div>
+          </div>
+
+          <p>AddRoundKey — XOR against the Round 1 key from Part 1, closing out the round:</p>
+          <div class="stage-row">
+            <figure>
+              <div class="grid4">
+                <div class="c">5f</div><div class="c">72</div><div class="c">64</div><div class="c">15</div>
+                <div class="c">57</div><div class="c">f5</div><div class="c">be</div><div class="c">b9</div>
+                <div class="c">64</div><div class="c">bc</div><div class="c">3b</div><div class="c">f9</div>
+                <div class="c">15</div><div class="c">92</div><div class="c">29</div><div class="c">1a</div>
+              </div>
+              <figcaption>post-MixColumns</figcaption>
+            </figure>
+            <span class="op">⊕</span>
+            <figure>
+              <div class="grid4">
+                <div class="c g">d6</div><div class="c g">d2</div><div class="c g">da</div><div class="c g">d6</div>
+                <div class="c g">aa</div><div class="c g">af</div><div class="c g">a6</div><div class="c g">ab</div>
+                <div class="c g">74</div><div class="c g">72</div><div class="c g">78</div><div class="c g">76</div>
+                <div class="c g">fd</div><div class="c g">fa</div><div class="c g">f1</div><div class="c g">fe</div>
+              </div>
+              <figcaption>Round 1 key</figcaption>
+            </figure>
+            <span class="op">=</span>
+            <figure>
+              <div class="grid4">
+                <div class="c">89</div><div class="c">85</div><div class="c">2d</div><div class="c">cb</div>
+                <div class="c">d8</div><div class="c">5a</div><div class="c">18</div><div class="c">12</div>
+                <div class="c">10</div><div class="c">ce</div><div class="c">43</div><div class="c">8f</div>
+                <div class="c">e8</div><div class="c">68</div><div class="c">d8</div><div class="c">e4</div>
+              </div>
+              <figcaption>state after Round 1</figcaption>
+            </figure>
+          </div>
+
+        </div>
+      </details>
+
+      <div class="note">This block is the standard FIPS-197 AES-128 test vector (key <code class="mono">000102030405060708090a0b0c0d0e0f</code>, plaintext <code class="mono">00112233445566778899aabbccddeeff</code>) — if your Round 1 state doesn't match <code class="mono">89 85 2d cb d8 5a 18 12 10 ce 43 8f e8 68 d8 e4</code>, the mismatch is somewhere in RotWord, SubWord, or one of the GF(2⁸) multiplications above, not in the given values.</div>
+
+      <div class="page-nav">
+        <a href="encryption-process.html"><span class="lbl">Back — 02</span>Encryption Process</a>
+        <a class="next" href="index.html"><span class="lbl">Back to start →</span>00 Overview</a>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
